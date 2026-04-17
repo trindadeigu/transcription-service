@@ -139,7 +139,9 @@ class TranscriptionService:
         output_dir: str = "data/output",
         print_result: bool = False,
     ) -> Dict[str, Any]:
+        
         input_path = Path(input_dir)
+        output_dir = Path(output_dir)
 
         if not input_path.exists():
             return {
@@ -185,6 +187,7 @@ class TranscriptionService:
                 item["txt_save"] = save_result
 
             results.append(item)
+            
             if print_result:
                 print(f"Arquivo: {file.name}")
                 if result.get("success"):
