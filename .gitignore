@@ -1,0 +1,23 @@
+# Ignorar __pycache__
+__pycache__/
+*.pyc
+
+# Ignorar pastas de bases de dados
+data/
+
+# Ignorar checkpoints de Jupyter
+.ipynb_checkpoints/
+
+# Ignorar arquivos temporários
+*.log
+*.tmp
+
+# Ignorar arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Ambiente virtual
+.venv/
+.venv
+.python-version
+project_code.zip
