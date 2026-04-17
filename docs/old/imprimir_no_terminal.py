@@ -15,11 +15,13 @@ def main():
     print("Iniciando transcrição...\n")
     result = service.transcribe("data/input/audio_teste.mp3", language="pt")
 
-    if result["success"]:
-        save_result = service.save_as_txt(result)
-        print(save_result)
-    else:
-        print(result["error"])
+    if not result["success"]:
+        print("Erro:", result["error"])
+        return
+
+    print("Idioma detectado:", result["metadata"]["language"])
+    print(f"Texto transcrito com o modelo {model}:")
+    print(result["text"])
 
 
 if __name__ == "__main__":
