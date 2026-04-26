@@ -5,14 +5,16 @@ from faster_whisper import WhisperModel
 
 
 class TranscriptionService:
+    # Formatos de entrada aceitos pelo modelo
     SUPPORTED_EXTENSIONS = {".mp3", ".wav", ".m4a", ".mp4", ".flac", ".ogg"}
 
     def __init__(
         self,
-        model_size: str = "base",
-        device: str = "cpu",
-        compute_type: str = "int8"
+        model_size: str = "base",   # Opções: tiny, base, small, medium, large-v1, large-v2, large-v3
+        device: str = "cpu",        # Opções: "cpu", "cuda" (NVIDIA) — AMD não suporta cuda
+        compute_type: str = "int8"  # Opções: "int8" (cpu), "float16" / "int8_float16" (cuda)
     ):
+        # Carrega o modelo na inicialização — custo alto feito uma vez, reutilizado em todas as transcrições
         self.model = WhisperModel(
             model_size,
             device=device,
@@ -22,6 +24,7 @@ class TranscriptionService:
     def transcribe(self, file_path: str, language: Optional[str] = "pt") -> Dict[str, Any]:
         path = Path(file_path)
 
+        # Validações fail-fast — retornam antes de chegar ao modelo
         if not path.exists():
             return {
                 "success": False,
@@ -40,11 +43,13 @@ class TranscriptionService:
             }
 
         try:
+            # model.transcribe() retorna um gerador de segmentos + objeto info com metadados do áudio
             segments, info = self.model.transcribe(str(path), language=language)
 
             segment_list = []
             full_text = []
 
+            # Itera o gerador — os segmentos são processados sob demanda, não todos de uma vez
             for segment in segments:
                 text = segment.text.strip()
 
@@ -54,6 +59,7 @@ class TranscriptionService:
                     "text": text
                 })
 
+                # Segmentos vazios são ignorados no texto completo mas preservados na lista de segmentos
                 if text:
                     full_text.append(text)
 
@@ -65,6 +71,7 @@ class TranscriptionService:
                 "metadata": {
                     "file_name": path.name,
                     "file_path": str(path),
+                    # getattr com fallback None — campos podem não existir dependendo da versão do modelo
                     "language": getattr(info, "language", None),
                     "language_probability": getattr(info, "language_probability", None),
                     "duration": getattr(info, "duration", None)
@@ -77,6 +84,7 @@ class TranscriptionService:
                 "text": None,
                 "segments": [],
                 "error": f"Erro ao transcrever arquivo: {str(e)}",
+                # Metadados preservados mesmo no erro — útil para rastrear qual arquivo falhou
                 "metadata": {
                     "file_name": path.name,
                     "file_path": str(path),
@@ -85,64 +93,17 @@ class TranscriptionService:
                     "duration": getattr(info, "duration", None)
                 }
             }
-            
-    def save_as_txt(
-        self,
-        result: Dict[str, Any],
-        output_dir: str = "data/output",
-        file_name: Optional[str] = None
-    ) -> Dict[str, Any]:
-        if not result.get("success"):
-            return {
-                "success": False,
-                "file_path": None,
-                "error": "Não é possível salvar TXT de uma transcrição com erro."
-            }
-
-        text = result.get("text")
-        if not text:
-            return {
-                "success": False,
-                "file_path": None,
-                "error": "A transcrição não possui texto para salvar."
-            }
-
-        metadata = result.get("metadata", {})
-        original_file_name = metadata.get("file_name", "transcricao")
-
-        output_path = Path(output_dir)
-        output_path.mkdir(parents=True, exist_ok=True)
-
-        final_name = file_name if file_name else Path(original_file_name).stem
-        txt_path = output_path / f"{final_name}.txt"
-
-        try:
-            txt_path.write_text(text, encoding="utf-8")
-
-            return {
-                "success": True,
-                "file_path": str(txt_path),
-                "error": None
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "file_path": None,
-                "error": f"Erro ao salvar TXT: {str(e)}"
-            }
 
     def transcribe_batch(
         self,
         input_dir: str = "data/input",
         language: Optional[str] = "pt",
-        save_txt: bool = False,
-        output_dir: str = "data/output",
-        print_result: bool = False,
+        print_result: bool = False,   # Se True, imprime o resultado de cada arquivo no terminal
     ) -> Dict[str, Any]:
         
         input_path = Path(input_dir)
-        output_dir = Path(output_dir)
 
+        # Validações do diretório — fail-fast antes de qualquer transcrição
         if not input_path.exists():
             return {
                 "success": False,
@@ -157,6 +118,7 @@ class TranscriptionService:
                 "error": f"O caminho informado não é um diretório: {input_dir}"
             }
 
+        # Filtra apenas arquivos com extensões suportadas — ignora subdiretórios e outros arquivos
         files = [
             file for file in input_path.iterdir()
             if file.is_file() and file.suffix.lower() in self.SUPPORTED_EXTENSIONS
@@ -171,6 +133,7 @@ class TranscriptionService:
 
         results = []
 
+        # Itera sem interrupção — falha em um arquivo não cancela os demais
         for file in files:
             result = self.transcribe(str(file), language=language)
 
@@ -179,15 +142,9 @@ class TranscriptionService:
                 "result": result
             }
 
-            if save_txt and result.get("success"):
-                save_result = self.save_as_txt(
-                    result=result,
-                    output_dir=output_dir
-                )
-                item["txt_save"] = save_result
-
             results.append(item)
             
+            # Feedback imediato no terminal — útil para monitorar lotes longos
             if print_result:
                 print(f"Arquivo: {file.name}")
                 if result.get("success"):
@@ -195,11 +152,12 @@ class TranscriptionService:
                 else:
                     print(f"Erro: {result.get('error')}\n")
 
+        # Contadores derivados dos resultados — calculados ao final, não incrementados no loop
         success_count = sum(1 for item in results if item["result"].get("success"))
         error_count = len(results) - success_count
 
         return {
-            "success": True,
+            "success": True,  # True mesmo com erros parciais — indica que o batch executou
             "results": results,
             "summary": {
                 "total_files": len(results),

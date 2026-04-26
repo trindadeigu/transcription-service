@@ -3,38 +3,19 @@ transcription-service/
 │   ├── core/
 │   │   └── config.py
 │   ├── services/
+│   │   ├── transcription_exporter.py
 │   │   └── transcription_service.py
 │   └── utils/
 │       └── AudioCorruptor.py
-├── arquivos_corrompidos/
 ├── data/
-│   ├── arquivos/
-│   │   ├── aniversario.mp4
-│   │   ├── audio_teste_bytes_alterados.mp3
-│   │   ├── audio_teste_bytes_invertidos.mp3
-│   │   ├── audio_teste_extensao_trocada.wav
-│   │   ├── audio_teste_header_quebrado.mp3
-│   │   ├── audio_teste_ruido.wav
-│   │   ├── audio_teste_silencio.wav
-│   │   ├── audio_teste_trecho_zerado.mp3
-│   │   ├── audio_teste_truncado.mp3
-│   │   ├── Captura de tela 2025-12-19 080929.png
-│   │   ├── tg_audio_20260416_185007_AgADqgYAAjHbCEc.mp3
-│   │   └── tg_video_20260416_185708_AgADrQYAAjHbCEc.mp4
 │   ├── input/
-│   │   ├── audio_teste.mp3
-│   │   ├── audio_whatsapp.ogg
-│   │   └── video_teste.mp4
+│   │   ├── aula_sample.mp4
+│   │   └── dell_xps_sample.mp4
 │   └── output/
-│       ├── audio_teste.txt
-│       ├── audio_teste_bytes_alterados.txt
-│       ├── audio_teste_extensao_trocada.txt
-│       ├── audio_teste_header_quebrado.txt
-│       ├── audio_teste_ruido.txt
-│       ├── audio_teste_trecho_zerado.txt
-│       ├── audio_teste_truncado.txt
-│       ├── audio_whatsapp.txt
-│       └── video_teste.txt
+│       ├── aula_sample.docx
+│       ├── aula_sample.json
+│       ├── aula_sample.srt
+│       └── aula_sample.vtt
 ├── docs/
 │   ├── old/
 │   │   ├── imprimir_no_terminal.py
@@ -43,7 +24,8 @@ transcription-service/
 │   ├── 2. backlog.md
 │   ├── models.txt
 │   └── README.md
-├── batch_test.py
+├── arvore_projeto.txt
 ├── gera_arvore.py
-├── main.py
+├── main2.py
+├── project_code.zip
 └── requirements.txt
