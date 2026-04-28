@@ -3,7 +3,7 @@ __pycache__/
 *.pyc
 
 # Ignorar pastas de bases de dados
-data/
+
 
 # Ignorar checkpoints de Jupyter
 .ipynb_checkpoints/
