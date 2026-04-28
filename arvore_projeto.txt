@@ -8,14 +8,85 @@ transcription-service/
 │   └── utils/
 │       └── AudioCorruptor.py
 ├── data/
+│   ├── arquivos_teste/
+│   │   └── aniversario.mp4
 │   ├── input/
+│   │   ├── audio_teste_bytes_alterados.mp3
+│   │   ├── audio_teste_bytes_invertidos.mp3
+│   │   ├── audio_teste_extensao_trocada.wav
+│   │   ├── audio_teste_header_quebrado.mp3
+│   │   ├── audio_teste_ruido.wav
+│   │   ├── audio_teste_silencio.wav
+│   │   ├── audio_teste_trecho_zerado.mp3
+│   │   ├── audio_teste_truncado.mp3
 │   │   ├── aula_sample.mp4
-│   │   └── dell_xps_sample.mp4
+│   │   ├── Captura de tela 2025-12-19 080929.png
+│   │   ├── dell_xps_sample.mp4
+│   │   ├── exemplo_pdf.pdf
+│   │   ├── tg_audio_20260416_185007_AgADqgYAAjHbCEc.mp3
+│   │   └── tg_video_20260416_185708_AgADrQYAAjHbCEc.mp4
 │   └── output/
+│       ├── audio_teste_bytes_alterados.docx
+│       ├── audio_teste_bytes_alterados.json
+│       ├── audio_teste_bytes_alterados.srt
+│       ├── audio_teste_bytes_alterados.txt
+│       ├── audio_teste_bytes_alterados.vtt
+│       ├── audio_teste_bytes_invertidos.docx
+│       ├── audio_teste_bytes_invertidos.json
+│       ├── audio_teste_bytes_invertidos.srt
+│       ├── audio_teste_bytes_invertidos.txt
+│       ├── audio_teste_bytes_invertidos.vtt
+│       ├── audio_teste_extensao_trocada.docx
+│       ├── audio_teste_extensao_trocada.json
+│       ├── audio_teste_extensao_trocada.srt
+│       ├── audio_teste_extensao_trocada.txt
+│       ├── audio_teste_extensao_trocada.vtt
+│       ├── audio_teste_header_quebrado.docx
+│       ├── audio_teste_header_quebrado.json
+│       ├── audio_teste_header_quebrado.srt
+│       ├── audio_teste_header_quebrado.txt
+│       ├── audio_teste_header_quebrado.vtt
+│       ├── audio_teste_ruido.docx
+│       ├── audio_teste_ruido.json
+│       ├── audio_teste_ruido.srt
+│       ├── audio_teste_ruido.txt
+│       ├── audio_teste_ruido.vtt
+│       ├── audio_teste_silencio.docx
+│       ├── audio_teste_silencio.json
+│       ├── audio_teste_silencio.srt
+│       ├── audio_teste_silencio.txt
+│       ├── audio_teste_silencio.vtt
+│       ├── audio_teste_trecho_zerado.docx
+│       ├── audio_teste_trecho_zerado.json
+│       ├── audio_teste_trecho_zerado.srt
+│       ├── audio_teste_trecho_zerado.txt
+│       ├── audio_teste_trecho_zerado.vtt
+│       ├── audio_teste_truncado.docx
+│       ├── audio_teste_truncado.json
+│       ├── audio_teste_truncado.srt
+│       ├── audio_teste_truncado.txt
+│       ├── audio_teste_truncado.vtt
 │       ├── aula_sample.docx
 │       ├── aula_sample.json
 │       ├── aula_sample.srt
-│       └── aula_sample.vtt
+│       ├── aula_sample.txt
+│       ├── aula_sample.vtt
+│       ├── dell_xps_sample.docx
+│       ├── dell_xps_sample.json
+│       ├── dell_xps_sample.srt
+│       ├── dell_xps_sample.txt
+│       ├── dell_xps_sample.vtt
+│       ├── tg_audio_20260416_185007_AgADqgYAAjHbCEc.docx
+│       ├── tg_audio_20260416_185007_AgADqgYAAjHbCEc.json
+│       ├── tg_audio_20260416_185007_AgADqgYAAjHbCEc.srt
+│       ├── tg_audio_20260416_185007_AgADqgYAAjHbCEc.txt
+│       ├── tg_audio_20260416_185007_AgADqgYAAjHbCEc.vtt
+│       ├── tg_video_20260416_185708_AgADrQYAAjHbCEc.docx
+│       ├── tg_video_20260416_185708_AgADrQYAAjHbCEc.json
+│       ├── tg_video_20260416_185708_AgADrQYAAjHbCEc.srt
+│       ├── tg_video_20260416_185708_AgADrQYAAjHbCEc.txt
+│       ├── tg_video_20260416_185708_AgADrQYAAjHbCEc.vtt
+│       └── transcrições.zip
 ├── docs/
 │   ├── old/
 │   │   ├── imprimir_no_terminal.py
@@ -23,9 +94,18 @@ transcription-service/
 │   ├── 1. project_planning.md
 │   ├── 2. backlog.md
 │   ├── models.txt
+│   ├── novo_project.txt
 │   └── README.md
+├── tests/
+│   ├── conftest.py
+│   ├── test_cli.py
+│   ├── test_transcription_exporter.py
+│   └── test_transcription_service.py
 ├── arvore_projeto.txt
 ├── gera_arvore.py
-├── main2.py
 ├── project_code.zip
-└── requirements.txt
+├── pytest.ini
+├── requirements.txt
+├── requirements_dev.txt
+├── run.py
+└── Windows PowerShell.txt

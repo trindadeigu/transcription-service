@@ -1,0 +1,199 @@
+# transcription-service
+
+Serviço de transcrição local baseado em `faster-whisper`. Processa arquivos de áudio e vídeo e exporta o resultado em múltiplos formatos estruturados — tudo rodando offline, sem dependências de APIs externas.
+
+---
+
+## Stack
+
+| Componente | Tecnologia |
+|---|---|
+| Motor de transcrição | `faster-whisper` >= 1.2.0 |
+| Backend de inferência | `ctranslate2` 4.7.1 |
+| Exportação Word | `python-docx` |
+| Runtime | Python 3.12.x |
+| Ambiente | `.venv` via pyenv |
+
+---
+
+## Estrutura do projeto
+
+```
+transcription-service/
+├── app/
+│   ├── core/
+│   │   └── config.py                 # Diretórios base, input e output
+│   ├── services/
+│   │   ├── transcription_service.py  # Motor de transcrição
+│   │   └── transcription_exporter.py # Exportação para múltiplos formatos
+│   └── utils/
+│       └── AudioCorruptor.py         # Gerador de arquivos corrompidos para testes
+├── data/
+│   ├── input/                        # Arquivos de mídia para transcrever
+│   └── output/                       # Saídas geradas (.srt, .vtt, .json, .docx)
+├── docs/
+│   ├── old/                          # Scripts de exploração (arquivados)
+│   ├── 1. project_planning.md
+│   ├── 2. backlog.md
+│   ├── models.txt                    # Lista de modelos disponíveis
+│   └── README.md                     # Setup do ambiente
+├── main2.py                          # Script de uso principal
+├── gera_arvore.py                    # Utilitário: gera arvore_projeto.txt
+└── requirements.txt
+```
+
+---
+
+## Classes
+
+### `TranscriptionService`
+
+Responsabilidade única: transcrever arquivos de mídia usando o modelo Whisper.
+
+```python
+service = TranscriptionService(
+    model_size="base",    # tiny | base | small | medium | large-v*
+    device="cpu",         # cpu | cuda (NVIDIA only)
+    compute_type="int8"   # int8 (cpu) | float16 / int8_float16 (cuda)
+)
+```
+
+O modelo é carregado no `__init__` — custo alto pago uma vez, reutilizado em todas as chamadas.
+
+**Métodos:**
+
+`transcribe(file_path, language="pt")` — transcreve um arquivo. Retorna um dict estruturado com `success`, `text`, `segments`, `error` e `metadata`.
+
+`transcribe_batch(input_dir, language, print_result)` — itera um diretório e chama `transcribe` para cada arquivo suportado. Falhas individuais não interrompem o lote.
+
+**Formatos de entrada aceitos:** `.mp3` `.wav` `.m4a` `.mp4` `.flac` `.ogg`
+
+**Estrutura de retorno:**
+```python
+{
+    "success": True,
+    "text": "transcrição completa...",
+    "segments": [
+        {"start": 0.0, "end": 4.32, "text": "primeiro segmento"},
+        ...
+    ],
+    "error": None,
+    "metadata": {
+        "file_name": "audio.mp3",
+        "file_path": "data/input/audio.mp3",
+        "language": "pt",
+        "language_probability": 0.98,
+        "duration": 83.4
+    }
+}
+```
+
+---
+
+### `TranscriptionExporter`
+
+Responsabilidade única: receber o dict do `transcribe()` e persistir em disco no formato solicitado. Não conhece `TranscriptionService` — o dict é o único ponto de contato entre as duas classes.
+
+**Métodos:**
+
+`save(result, format, output_dir, file_name)` — exporta para um formato específico.
+
+`save_all(result, formats, output_dir, file_name)` — exporta para múltiplos formatos. Falha isolada em um formato não cancela os demais.
+
+**Formatos suportados:**
+
+| Formato | Descrição |
+|---|---|
+| `.txt` | Texto corrido |
+| `.srt` | Legendas com timestamps (padrão de players de vídeo) |
+| `.vtt` | WebVTT — padrão HTML5 para players web |
+| `.json` | Dados estruturados com metadados e segmentos |
+| `.docx` | Documento Word com metadados, transcrição completa e segmentos formatados |
+
+**Estrutura de retorno de `save`:**
+```python
+{"success": True, "file_path": "data/output/audio.srt", "error": None}
+```
+
+**Estrutura de retorno de `save_all`:**
+```python
+{
+    "success": True,
+    "results": {
+        "srt":  {"success": True,  "file_path": "...", "error": None},
+        "docx": {"success": False, "file_path": None,  "error": "Dependência ausente..."},
+    },
+    "errors": {"docx": "Dependência ausente..."}  # None quando tudo funcionou
+}
+```
+
+> `python-docx` é importado dentro do `_write_docx` em tempo de execução. Se não estiver instalado, apenas `.docx` falha — os outros formatos continuam funcionando.
+
+---
+
+## Uso
+
+```python
+from app.services.transcription_service import TranscriptionService
+from app.services.transcription_exporter import TranscriptionExporter
+
+service  = TranscriptionService(model_size="base", device="cpu", compute_type="int8")
+exporter = TranscriptionExporter()
+
+result = service.transcribe("data/input/audio.mp3", language="pt")
+
+if not result["success"]:
+    print("Erro:", result["error"])
+else:
+    # Um formato
+    exporter.save(result, format="srt")
+
+    # Todos de uma vez
+    exporter.save_all(result, formats=["srt", "vtt", "json", "docx"])
+```
+
+---
+
+## Hardware e limitações
+
+Desenvolvido e testado em:
+
+- CPU: AMD Ryzen 7 7735HS
+- RAM: 8 GB (5,69 GB utilizáveis)
+- GPU: AMD Radeon 2 GB — **sem suporte a CUDA**
+
+`device="cuda"` requer GPU NVIDIA. Para esta máquina, `device="cpu"` é o único modo viável.
+
+**Modelos recomendados para esta configuração:**
+
+| Modelo | RAM aprox. | Recomendado |
+|---|---|---|
+| `tiny` / `base` | ~1 GB | Testes rápidos |
+| `small` | ~2 GB | Uso geral |
+| `medium` | ~4–5 GB | Máximo viável |
+| `large-*` | 8–10 GB | Inviável — estoura memória |
+
+---
+
+## Dependência para `.docx`
+
+```powershell
+python -m pip install python-docx
+```
+
+---
+
+## Roadmap
+
+O projeto segue um plano de 8 fases. Estado atual: **Fase 1 e Fase 5 concluídas**.
+
+| Fase | Objetivo | Status |
+|---|---|---|
+| 1 — Core Engine | Transcrição funcional, batch, retorno estruturado | ✅ Concluído |
+| 2 — Robustez | Validação, tratamento de erros | ✅ Concluído |
+| 3 — Pós-processamento | Limpeza de fillers, pontuação automática | 🔲 Pendente |
+| 4 — Estruturação avançada | Diarização, metadados enriquecidos | 🔲 Pendente |
+| 5 — Exportação | `.srt` `.vtt` `.json` `.docx` | ✅ Concluído |
+| 6 — Interface | CLI, API REST, Telegram | 🔲 Pendente |
+| 7 — Escala | Fila assíncrona, paralelização | 🔲 Pendente |
+| 8 — Inteligência | Resumo por LLM, extração de tópicos | 🔲 Pendente |

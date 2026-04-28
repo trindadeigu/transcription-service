@@ -41,6 +41,8 @@ class TranscriptionService:
                 "error": f"Formato não suportado: {path.suffix}",
                 "suported_formats": list(self.SUPPORTED_EXTENSIONS)
             }
+            
+        info = None  # Variável para armazenar metadados do áudio, mesmo em caso de erro
 
         try:
             # model.transcribe() retorna um gerador de segmentos + objeto info com metadados do áudio
